@@ -62,10 +62,15 @@
         // 刷新触发的距离
         var refreshTrigger = 70;
         var viewTop = 0;
+        var endRefreshInterval;
+
         outerScroller.addEventListener('touchstart', function (event) {
             var touch = event.targetTouches[0];
             // 把元素放在手指所在的位置
             touchStart = touch.pageY;
+            if (typeof endRefreshInterval != "undefined") {
+                clearInterval(endRefreshInterval);
+            }
         }, false);
         outerScroller.addEventListener('touchmove', function (event) {
             var touch = event.targetTouches[0];
@@ -101,7 +106,11 @@
             } else if (yOffset > 20) {
                 yOffset = 20;
             }
-            var time = setInterval(function () {
+
+            if (typeof endRefreshInterval != "undefined") {
+                clearInterval(endRefreshInterval);
+            }
+            endRefreshInterval = setInterval(function () {
                 scroll.style.top = scroll.offsetTop - 1 - 0.5 * yOffset + 'px';
                 log("info1 : " + scroll.offsetTop + "    " + yOffset);
                 if (scroll.offsetTop <= backPositionY) {
@@ -111,7 +120,7 @@
                     } else {
                         scroll.style.top = 0;
                     }
-                    clearInterval(time);
+                    clearInterval(endRefreshInterval);
                     log("info1 : " + scroll.offsetTop + "    " + yOffset);
                 }
             }, 1);
