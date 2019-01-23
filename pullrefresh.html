@@ -62,7 +62,6 @@
         // 刷新触发的距离
         var refreshTrigger = 70;
         var viewTop = 0;
-        var back2RefreshState;
         outerScroller.addEventListener('touchstart', function (event) {
             var touch = event.targetTouches[0];
             // 把元素放在手指所在的位置
@@ -81,40 +80,46 @@
                 endRefresh(() => {
                     refreshLogic();
                 });
-
             } else {
                 endRefresh();
             }
         }, false);
 
-        // endBack 不为空，表示回复到正在刷新的状态  
-        function endRefresh(endBack) {
-            var is2RefreshingState = (typeof endBack) == "function";
+        // refreshingBack 不为空，表示回复到正在刷新的状态  
+        function endRefresh(refreshingBack) {
+            var is2RefreshingState = (typeof refreshingBack) == "function";
             var backPositionY = is2RefreshingState ? refreshTrigger : 0;
 
-            if (viewTop > backPositionY) {
-                var time = setInterval(function () {
-                    var infoDiv = document.getElementById("info");
+            // 偏移量简单处理，当然最好还是用幂函数确定
+            var yOffset = ((scroll.offsetTop - (is2RefreshingState ? refreshTrigger : 0)) / 10);
 
-                    // 偏移量简单处理，当然最好还是用幂函数确定
-                    var offset = ((scroll.offsetTop - is2RefreshingState ? refreshTrigger : 0) / 10);
-                    if (offset < 3) {
-                        offset = 0;
-                    } else if (offset > 10) {
-                        offset = 10;
-                    }
-                    infoDiv.innerText = "info : " + scroll.offsetTop + "    " + offset;
+            var infoDiv = document.getElementById("info");
+            console.log("yOffset    " + yOffset);
 
-                    scroll.style.top = scroll.offsetTop - 1 - 0.5 * offset + 'px';
-
-                    if (scroll.offsetTop <= backPositionY) {
-                        if (is2RefreshingState) {
-                            endBack();
-                        }
-                        clearInterval(time);
-                    }
-                }, 1)
+            if (yOffset < 6) {
+                yOffset = 0;
+            } else if (yOffset > 20) {
+                yOffset = 20;
             }
+            var time = setInterval(function () {
+                scroll.style.top = scroll.offsetTop - 1 - 0.5 * yOffset + 'px';
+                log("info1 : " + scroll.offsetTop + "    " + yOffset);
+                if (scroll.offsetTop <= backPositionY) {
+                    if (is2RefreshingState) {
+                        scroll.style.top = refreshTrigger;
+                        refreshingBack();
+                    } else {
+                        scroll.style.top = 0;
+                    }
+                    clearInterval(time);
+                    log("info1 : " + scroll.offsetTop + "    " + yOffset);
+                }
+            }, 1);
+        }
+
+        function log(info) {
+            var infoDiv = document.getElementById("info");
+            infoDiv.innerText = info;
         }
 
         function refreshLogic() {
