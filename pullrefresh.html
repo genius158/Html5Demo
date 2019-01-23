@@ -19,7 +19,7 @@
         li {
             list-style-type: none;
             height: 35px;
-            background: gainsboro;
+            background: rgb(204, 204, 204);
             border-bottom: solid 1px #fff;
             text-align: left;
             line-height: 35px;
@@ -40,57 +40,93 @@
 <body>
     <div class="outerScroller">
         <ul class='scroll'>
-            <li>朋友圈1</li>
-            <li>朋友圈2</li>
-            <li>朋友圈3</li>
-            <li>朋友圈4</li>
-            <li>朋友圈5</li>
-            <li>朋友圈6</li>
-            <li>朋友圈7</li>
-            <li>朋友圈8</li>
-            <li>朋友圈9</li>
-            <li>朋友圈10</li>
+            <li>test1</li>
+            <li>test2</li>
+            <li>test3</li>
+            <li>test4</li>
+            <li>test5</li>
+            <li>test6</li>
+            <li>test7</li>
+            <li>test8</li>
+            <li>test9</li>
+            <li>test10</li>
         </ul>
+        <div style="background-color: #428bca; height: 25px;" id="info">info :
+        </div>
     </div>
     <script>
         var scroll = document.querySelector('.scroll');
         var outerScroller = document.querySelector('.outerScroller');
         var touchStart = 0;
         var touchDis = 0;
+        // 刷新触发的距离
+        var refreshTrigger = 70;
+        var viewTop = 0;
+        var back2RefreshState;
         outerScroller.addEventListener('touchstart', function (event) {
             var touch = event.targetTouches[0];
             // 把元素放在手指所在的位置
             touchStart = touch.pageY;
-            console.log(touchStart);
         }, false);
         outerScroller.addEventListener('touchmove', function (event) {
             var touch = event.targetTouches[0];
-            console.log(touch.pageY + 'px');
-            scroll.style.top = scroll.offsetTop + touch.pageY - touchStart + 'px';
-            console.log(scroll.style.top);
+            scroll.style.top = scroll.offsetTop + (touch.pageY - touchStart) / 2 + 'px';
             touchStart = touch.pageY;
             touchDis = touch.pageY - touchStart;
         }, false);
         outerScroller.addEventListener('touchend', function (event) {
             touchStart = 0;
-            var top = scroll.offsetTop;
-            console.log(top);
-            if (top > 70) refresh();
-            if (top > 0) {
-                var time = setInterval(function () {
-                    scroll.style.top = scroll.offsetTop - 4 + 'px';
-                    if (scroll.offsetTop <= 0) clearInterval(time);
-                }, 1)
+            viewTop = scroll.offsetTop;
+            if (viewTop > refreshTrigger) {
+                endRefresh(() => {
+                    refreshLogic();
+                });
+
+            } else {
+                endRefresh();
             }
         }, false);
 
-        function refresh() {
-            //这里是后台数据
-            for (var i = 3; i > 0; i--) {
-                var node = document.createElement("li");
-                node.innerHTML = "I'm new" + i;
-                scroll.insertBefore(node, scroll.firstChild);
+        // endBack 不为空，表示回复到正在刷新的状态  
+        function endRefresh(endBack) {
+            var is2RefreshingState = (typeof endBack) == "function";
+            var backPositionY = is2RefreshingState ? refreshTrigger : 0;
+
+            if (viewTop > backPositionY) {
+                var time = setInterval(function () {
+                    var infoDiv = document.getElementById("info");
+
+                    // 偏移量简单处理，当然最好还是用幂函数确定
+                    var offset = ((scroll.offsetTop - is2RefreshingState ? refreshTrigger : 0) / 10);
+                    if (offset < 3) {
+                        offset = 0;
+                    } else if (offset > 10) {
+                        offset = 10;
+                    }
+                    infoDiv.innerText = "info : " + scroll.offsetTop + "    " + offset;
+
+                    scroll.style.top = scroll.offsetTop - 1 - 0.5 * offset + 'px';
+
+                    if (scroll.offsetTop <= backPositionY) {
+                        if (is2RefreshingState) {
+                            endBack();
+                        }
+                        clearInterval(time);
+                    }
+                }, 1)
             }
+        }
+
+        function refreshLogic() {
+            var refreshing = setInterval(() => {
+                //这里是后台数据
+                var node = document.createElement("li");
+                node.innerHTML = "refresh back";
+                scroll.insertBefore(node, scroll.firstChild);
+
+                endRefresh();
+                clearInterval(refreshing);
+            }, 1000)
         }
     </script>
 </body>
